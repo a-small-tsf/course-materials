@@ -1,70 +1,88 @@
 ---
-title: "Statistical prediction in a decision model"
+title: "A very simple time series analysis"
 subtitle: "A simple example using R code"
 output: html_notebook
 ---
 
 
+# Steps in a very simple time series statistical analysis
 
-# The decision problem
+1. State your question
+2. Acquire data and background information
+3. Organize your data
+4. Perform exploratory analysis of your data
+5. Write down your model of the data generating process
+6. If necessary: transform the model and data to make it ready for analysis
+7. Choose an appropriate technique for estimating model parameters, consistent with your assumptions about your data generating process
+8. Estimate model parameters
+9. Confirm that your modeling assumptions are satisfied; 
+10. compute measures of model quality; confirm that your model is good enough for your purpose
+11. Use your calibrated model to address your original question. 
+
+Examples of using your model:
+
+  - Generate a forecast of future events
+  - Estimate the probability of a future event
+  - $\ldots$
+  
+
+
+
+# Example problem: Estimating the probability of a weather event
 
 A pub owner in Charlottesville plans to sell beer outside on St. Patrick's Day, March 17. The pub owner must decide whether to arrange to rent a supplemental refrigeration system for the day. 
 
 Supplemental refrigeration offers a form of insurance. If temperatures outside on March 17 are high and the pub owner has not arranged supplemental refrigeration, she will be left with warm beer that she will have difficulty selling, leading to financial losses. Conversely, if she pays for supplemental refrigeration when temperatures are low, she will have incurred an unnecessary expense.
 
-The analysis here uses statistical decision theory to generate a recommendation about whether or not to pay to rent a supplemental refrigeration system, in order to insure against the potential of financial losses in case of high temperatures.
+To decide whether to insure herself against loss, she wishes to estimate the probability distribution of temperatures on March 17. 
 
-# Formalism
+## 1. State your question
 
-## Action set
+**1. What is the probability that the high temperature on March 17 will exceed 23 degrees Celsius?**
 
-The action set $\mathbb{A}$ includes just two elements: $\mathbb{A} = \{a_1, a_2\}$, where $a_1$ and $a_2$ correspond to the decsions to not purchase insurance, and to purchase insurance, respectively.
+## 2. Acquire data and background information
 
-## Payoffs: The loss function
+Get historical temperature data. 
 
-Let $L(a,y)$ denote the losses incurred by the publican. These depend on the action chosen, and on $y$, the high temperature in Charlotteville on March 17, measured in degrees Celsius. 
+(Here, will simulate the data.)
 
-If temperature risks are uninsured ($a = a_1$), losses increase linearly with temperature for temperatures above a threshold level $\underline{y}$: 
-if $y > \underline{y}$,
+```{r simulate historical data - no covariates}
+set.seed(1)       # Keeps random data from changing each time the code is run
 
-$$ L(a_1,y) =   \left\{
-\begin{array}{ll}
-      0                     & y \leq \underline{y} \\
-      c_1 (y-\underline{y}) & y > \underline{y} \\
-\end{array} 
-\right.  $$
+theta <-  18      # True long-run average temp
+sigma  <-  3      # True stnd dev of temp around this mean
+n      <- 20      # number of simulated historical data points
 
-for some constant $c_1 > 0$.
+y <- rnorm(n,theta,sigma)
+```
 
-## Uncertainty
-
-Arrangements to arrange supplemental refrigeration must be locked in two weeks in advance, before temperatures are known. Let $Y$ denote the random temperature.
-
-## Decision criterion
-
-The pub owner is risk-neutral. Her decision criterion is: choose the action that minimizes losses in expectation:
-
-$$ a^* = \underset{a \in \mathbb{A}}{\operatorname{argmin}}{\,} E[L(a,Y)]$$
-where the expectation is taken over the distiribution of $Y$. This distribution represents the information about uncertain temperatures that the decision-maker has available at the time of she must make her decision.
-
-To operationalize this model and derive an optimal solution requires building a system for generating a probabilistic forecast for temperatures on March 17.
-
-# Statistical forecasting model
-
-At a two-week time horizon, temperature forecasts based on numerical weather prediction models are not reliable. Instead, a statistical forecasting model is used.
-
-## Historical data
+## 3. Organize your data
 
 Let $y_1, \ldots, y_n$ denote the high temperature in Charlottesville on March 17 for each of the previous $n$ years.
 
-## Model of the data generating process
+```{r}
+print(y)
+```
 
-It is supposed that these data were generated as independent, identically distributed random draws from a normal distribution: for $i = 1, \ldots, n$,
+## 4. Perform exploratory analysis of your data
 
-$$y_i = \theta + \varepsilon_i$$
-where $\theta$ denotes the true but unobserved value of the long-run average temperature, and where $\varepsilon_i \sim N(0, \sigma^2_\varepsilon)$. 
+```{r }
+hist(y, breaks = 10, main = "Histogram of historical temperatures in degrees C")
+```
 
-## Comments on this statistical model: The risk of model mis-specification
+```{r}
+boxplot(y)
+```
+
+
+## 5. Write down your model of the data generating process
+
+It is supposed that these data were generated as independent, identically distributed random draws from a normal distribution: for $t = 1, \ldots, n$,
+
+$$y_t = \theta + \varepsilon_t$$
+where $\theta$ denotes the true but unobserved value of the long-run average temperature, and where $\varepsilon_t \sim N(0, \sigma^2_\varepsilon)$. 
+
+### Comments on this statistical model: The risk of model mis-specification
 
 This model asserts several substantive assumptions about the data generating process.
 
@@ -95,47 +113,21 @@ One very good idea is to perform a *sensitivity analysis*. How sensitive are you
 On the other hand, if your decision recommendations are not highly sensitive to your statistical assumptions, then keeping your initial model may be defensible. The point of this work is *not* to build the best possible prediction system, bullet-proof against any statistical criticism. The point is to help people make good decisions -- or at least, decisiions better than they would have made otherwise. Your time and other resources are limited. A good-enough model may be good enough.
 
 
-## Simulation of the prediction process, no covariates
+## 6. If necessary: transform the model and data to make it ready for analysis
 
-```{r simulate historical data - no covariates}
+Not needed here.
 
-set.seed(1)       # Keeps random data from changing each time the code is run
+Will consider many cases where it is.
 
-theta <-  18      # True long-run average temp
-sigma  <-  3      # True stnd dev of temp around this mean
-n      <- 20      # number of simulated historical data points
 
-y <- rnorm(n,theta,sigma)
+## 7. Choose an appropriate technique for estimating model parameters, consistent with your assumptions about your data generating process
 
-hist(y, breaks = 10, main = "Histogram of historical temperatures in degrees C")
+For this case, OLS is just fine.
 
-```
-
-```{r}
-boxplot(y)
-```
-
-```{r empirical distribution of losses}
-
-# c0 <- 18     # Threshold temperature for losses
-# c1 <- 1000   # Loss per degree above threshold, in dollars
-# 
-# Loss_fcn <- function(temperature){
-#   for(i in 1:length(temperature)){
-#     c1*(temperature[i] - c0)
-#   }
-# }
-# 
-# losses <- Loss_fcn(y)
-# 
-# hist(losses, breaks = 10, main = "Empirical distribution of losses based on historically observed temps")
-
-```
-
+## 8. Estimate model parameters
 
 
 ```{r estimate model parameters using ordinary least squares}
-
 theta_hat <- mean(y)         # Sample mean
 
 epsilon_hat <- y-theta_hat   # Model residuals
@@ -147,20 +139,14 @@ sigma_hat <- ssr/(n-1)       # Estimated standard error
 print(theta_hat)
 
 print(sigma_hat)
-
 ```
 
 
-```{r generate distribution of temp based on model results}
-
-sim_y <- rnorm(10000, theta_hat, sigma_hat)
-
-hist(sim_y, breaks = 100)
-
-```
+## 9. Confirm that your modeling assumptions are satisfied
 
 
-# Using a forecast
+## 10. compute measures of model quality; confirm that your model is good enough for your purpose
+
 
 ```{r}
 forecast_bias <- -0.5
@@ -178,13 +164,24 @@ abline(linear_model)
 
 
 ```{r}
-
-
 plot(x,y)
-
-
 ```
 
+
+
+
+## 11. Use your calibrated model to address your original question. 
+
+```{r generate distribution of temp based on model results}
+sim_y <- rnorm(10000, theta_hat, sigma_hat)
+
+hist(sim_y, breaks = 100)
+```
+
+
+
+
+# For next time: Add a covariate
 
 Simulation of the prediction process, one covariate
 
@@ -211,13 +208,13 @@ set.seed(1)       # Keep random data from changing each time the code is run
 
 theta <- 18
 
+Theta <-  c(0,18)      # True long-run average
+Sigma  <-  3      # True stnd dev of temp around this mean
+N      <- 40      # number of simulated historical data points
 
 
 x <- rnorm(N, mean=theta, sd=sigma_x)
 
-Theta <-  c(0,18)      # True long-run average
-Sigma  <-  3      # True stnd dev of temp around this mean
-N      <- 40      # number of simulated historical data points
 
 y <- rnorm(n,theta,sigma)
 
