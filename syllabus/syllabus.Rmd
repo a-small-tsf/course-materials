@@ -4,10 +4,14 @@ author: "Instructor: Arthur Small"
 date:   "University of Virginia Engineering, Fall 2020"
 
 output: 
-  pdf_document:
-#   keep_tex: true
-    fig_caption: yes
-    latex_engine: pdflatex
+#   pdf_document:
+# #   keep_tex: true
+#     fig_caption: yes
+#     latex_engine: pdflatex
+#     
+  html_document:
+    keep_md: true
+
 geometry: margin=1in
 
 fontfamily: mathpazo
