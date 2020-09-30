@@ -27,6 +27,7 @@ Your proposal should include at least the following sections and information.
 
 **Abstract:** A very brief summary of the project.
 
+
 # Introduction
 
 Give a narrative description of the problem you are addressing, and the methods you will use to address it. Provide context:
@@ -37,7 +38,9 @@ Give a narrative description of the problem you are addressing, and the methods 
 
 # The data and the data-generating process
 
-Describe the data set you will be analyzing, and where it comes from, how it was generated and collected. Identify the source of the data. Give a narrative description of the data-generating process: this piece is critical. Since these will be time series data: identify the frequency of the data series (e.g., hourly, monthly), and the period of record.
+Describe the data set you will be analyzing, and where it comes from, how it was generated and collected. Identify the source of the data. Give a narrative description of the data-generating process: this piece is critical. 
+
+Since these will be time series data: identify the frequency of the data series (e.g., hourly, monthly), and the period of record.
 
 
 
