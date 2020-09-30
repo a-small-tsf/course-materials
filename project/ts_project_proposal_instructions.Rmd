@@ -15,7 +15,7 @@ output:
   # html_document:
   #       keep_md: yes
   # pdf_document: default
-bibliography: /Users/Arthur/GitRepos/Water_Quality/Manuscripts/WaterQuality.bib
+bibliography: /Users/Arthur/GitRepos/Teaching/time-series/tseries.bib
 link-citations: yes
 ---
 
@@ -35,12 +35,20 @@ Give a narrative description of the problem you are addressing, and the methods 
   * What is the question you are attempting to answer?
   * Why is this question important? (Who cares?)
   * How will you go about attempting to answer this question?
+  
+This work addresses the question: Why do people not use probabilistic forecasts for decision-making [@councilCompletingForecastCharacterizing2007]?
 
 # The data and the data-generating process
 
 Describe the data set you will be analyzing, and where it comes from, how it was generated and collected. Identify the source of the data. Give a narrative description of the data-generating process: this piece is critical. 
 
 Since these will be time series data: identify the frequency of the data series (e.g., hourly, monthly), and the period of record.
+
+```{r read in data}
+library(dplyr)
+library(readr)
+
+```
 
 
 
@@ -88,9 +96,6 @@ Describe your plan for getting this information. OLS regression? Some other stat
 
 If you can: describe briefly which computational tools you will use (e.g., R), and which packages you expect to draw on.
 
-# References 
-
-Cite your sources.
 
 # Submission requirements
 
@@ -99,3 +104,6 @@ Prepare your proposal using Markdown. (You may find it useful to generate your M
 # Comment
 
 Depending on your prior experience, you may find this assignment challenging. Treat this assignment as an opportunity to make progress on your own research program. Make your proposal as complete as you can. But note that this assignment is merely the First Draft. You will have more opportunity to refine your work over the next two months, in consultation with the instructor, your advisor, and your classmates.
+
+# References 
+
