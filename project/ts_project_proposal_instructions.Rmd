@@ -27,39 +27,35 @@ Your proposal should include at least the following sections and information.
 
 **Abstract:** A very brief summary of the project.
 
-
 # Introduction
 
 Give a narrative description of the problem you are addressing, and the methods you will use to address it. Provide context:
 
-  * What is the question you are attempting to answer?
-  * Why is this question important? (Who cares?)
-  * How will you go about attempting to answer this question?
-  
+-   What is the question you are attempting to answer?
+-   Why is this question important? (Who cares?)
+-   How will you go about attempting to answer this question?
+
 This work addresses the question: Why do people not use probabilistic forecasts for decision-making [@councilCompletingForecastCharacterizing2007]?
 
 # The data and the data-generating process
 
-Describe the data set you will be analyzing, and where it comes from, how it was generated and collected. Identify the source of the data. Give a narrative description of the data-generating process: this piece is critical. 
+Describe the data set you will be analyzing, and where it comes from, how it was generated and collected. Identify the source of the data. Give a narrative description of the data-generating process: this piece is critical.
 
 Since these will be time series data: identify the frequency of the data series (e.g., hourly, monthly), and the period of record.
 
-```{r read in data}
+```{r read in data, message=FALSE}
 library(dplyr)
 library(readr)
 
 ```
 
-
-
 # Exploratory data analysis
 
-Provide a brief example of the data, showing how they are structured. 
+Provide a brief example of the data, showing how they are structured.
 
-Plot the time series. 
+Plot the time series.
 
 Perform and report the results of other exploratory data analysis.
-
 
 # Statistical model
 
@@ -71,31 +67,21 @@ If applicable: describe any transformations of the data (e.g., differencing, tak
 
 What kind of process is it? $AR(p)$? White noise with drift? Something else?
 
-Write down an equation expressing each realization of the stochastic process $y_t$ as a function of other observed data (which could include lagged values of $y$), unobserved parameters ($\beta$), and an error term ($\varepsilon_t$). Ex: 
+Write down an equation expressing each realization of the stochastic process $y_t$ as a function of other observed data (which could include lagged values of $y$), unobserved parameters ($\beta$), and an error term ($\varepsilon_t$). Ex:
 
-$$y = X\cdot\beta + \varepsilon$$
-Add a model of the error process. Ex: $\varepsilon \sim N(0, \sigma^2 I_T)$.
-
+$$y = X\cdot\beta + \varepsilon$$ Add a model of the error process. Ex: $\varepsilon \sim N(0, \sigma^2 I_T)$.
 
 ## Discussion of the statistical model
 
-Describe how the formal statistical model captures and aligns with the narrative of the data-generating process.
-Flag any statistical challenges raised by the data generating process, e.g.
-selection bias; survivorship bias;
-omitted variables bias,
-etc.
+Describe how the formal statistical model captures and aligns with the narrative of the data-generating process. Flag any statistical challenges raised by the data generating process, e.g. selection bias; survivorship bias; omitted variables bias, etc.
 
 # Plan for data analysis
 
-Describe what information you wish to extract from the data. Do you wish to...
-estimate the values of the unobserved model parameters?
-create a tool for forecasting?
-estimate the exceedance probabilities for future realizations of $y_t$?
+Describe what information you wish to extract from the data. Do you wish to... estimate the values of the unobserved model parameters? create a tool for forecasting? estimate the exceedance probabilities for future realizations of $y_t$?
 
 Describe your plan for getting this information. OLS regression? Some other statistical technique?
 
 If you can: describe briefly which computational tools you will use (e.g., R), and which packages you expect to draw on.
-
 
 # Submission requirements
 
@@ -105,5 +91,4 @@ Prepare your proposal using Markdown. (You may find it useful to generate your M
 
 Depending on your prior experience, you may find this assignment challenging. Treat this assignment as an opportunity to make progress on your own research program. Make your proposal as complete as you can. But note that this assignment is merely the First Draft. You will have more opportunity to refine your work over the next two months, in consultation with the instructor, your advisor, and your classmates.
 
-# References 
-
+# References
