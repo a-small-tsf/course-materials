@@ -43,17 +43,83 @@ Describe the data set you will be analyzing, and where it comes from, how it was
 
 Since these will be time series data: identify the frequency of the data series (e.g., hourly, monthly), and the period of record.
 
+```{r open connection to database}
+# Connection to the database
+# "my_postgres_credentials.R" contains the log-in information
+# if(!('RPostgreSQL' %in% installed.packages())) install.packages('RPostgreSQL')
+
+install.packages('RPostgreSQL')
+library(RPostgreSQL)
+source("/Users/Arthur/GitRepos/Teaching/my_postgres_db_credentials.R")
+
+
+db_driver <- dbDriver("PostgreSQL")
+db <- dbConnect(db_driver,user=user, password=password,dbname="postgres", host=host)
+rm(password)
+
+# check the connection
+dbExistsTable(db, "metadata")
+```
+
 ```{r read in data, message=FALSE}
 library(dplyr)
-library(readr)
+library(tidyverse)
 
+esales <- dbGetQuery(db,'SELECT * from eia_elec_sales_va_all_m')
+
+str(esales)
+
+esales <- as_tibble(esales)
+
+str(esales)
+
+print(esales)
+
+```
+
+```{r close db connection}
+# Close connection
+dbDisconnect(db)
+dbUnloadDriver(db_driver)
 ```
 
 # Exploratory data analysis
 
 Provide a brief example of the data, showing how they are structured.
 
+```{r print a data table}
+print(esales)
+
+```
+
+
+```{r use tidyverse syntax to perform data manipulations}
+
+esales %>%
+  filter(year == 2019) %>%
+  filter(value > 9000)
+
+esales %>%
+  group_by(month) %>%
+  summarise(mean = mean(value)) -> mean_esales_by_month
+
+esales %>%
+  mutate(sales_TWh = value/1000) %>%
+  select(-value)
+  
+# filter(data object, condition)
+
+```
+
+
 Plot the time series.
+
+```{r use ggplot2 to generate a plot}
+
+ggplot(data=esales, aes(x=date,y=value)) + geom_line()
+
+```
+
 
 Perform and report the results of other exploratory data analysis.
 
