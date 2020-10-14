@@ -1,19 +1,19 @@
 ---
-title:     "Project Proposal Instructions"
+title:     "Project Proposal Instructions with example code"
 institute: "SYS 7030 Time Series Analysis & Forecasting, Fall 2020" 
 author:     "Instructor: Arthur Small"
 date:       "Version of `r Sys.Date()`"
 output:
-   pdf_document:
-     toc: false
-  # html_notebook:
-  #   number_sections: true
-  #   toc: yes
-  #   toc_depth: 4
-  #   code_folding: show # options: show, hide
-  #   fig_caption: yes
-  # html_document:
-  #       keep_md: yes
+   # pdf_document:
+   #   toc: false
+  html_notebook:
+    number_sections: true
+    toc: yes
+    toc_depth: 4
+    code_folding: show # options: show, hide
+    fig_caption: yes
+  html_document:
+        keep_md: yes
   # pdf_document: default
 bibliography: /Users/Arthur/GitRepos/Teaching/time-series/tseries.bib
 link-citations: yes
@@ -43,60 +43,74 @@ Describe the data set you will be analyzing, and where it comes from, how it was
 
 Since these will be time series data: identify the frequency of the data series (e.g., hourly, monthly), and the period of record.
 
-```{r open connection to database}
-# Connection to the database
-# "my_postgres_credentials.R" contains the log-in information
-# if(!('RPostgreSQL' %in% installed.packages())) install.packages('RPostgreSQL')
+```{r set up coding environment, include=FALSE, message=FALSE}
+# library(dplyr) -- don't need this if you are loading the entire 'tidyverse' suite
+library(tidyverse)
+library(lubridate) # For easy handling of time-indexed objects
+```
 
-install.packages('RPostgreSQL')
+```{r open connection to database, eval=FALSE, include=FALSE}
+# Open connection to a remote database
+# Make sure your VPN network connection is active if needed!
+
+# if(!('RPostgreSQL' %in% installed.packages())) install.packages('RPostgreSQL')
 library(RPostgreSQL)
+
+# "my_postgres_credentials.R" contains the log-in information
 source("/Users/Arthur/GitRepos/Teaching/my_postgres_db_credentials.R")
 
-
+# Open connection
 db_driver <- dbDriver("PostgreSQL")
 db <- dbConnect(db_driver,user=user, password=password,dbname="postgres", host=host)
-rm(password)
+rm(password) 
 
-# check the connection
+# check the connection: If function returns value TRUE, the connection is working
 dbExistsTable(db, "metadata")
 ```
 
-```{r read in data, message=FALSE}
-library(dplyr)
-library(tidyverse)
+```{r retrieve data from db, eval=FALSE, message=FALSE}
 
-esales <- dbGetQuery(db,'SELECT * from eia_elec_sales_va_all_m')
-
-str(esales)
-
-esales <- as_tibble(esales)
-
-str(esales)
-
-print(esales)
-
+esales <- dbGetQuery(db,'SELECT * from eia_elec_sales_va_all_m') # SQL code to retrieve data from a table in the remote database
+# str(esales)
+esales <- as_tibble(esales) # Convert dataframe to a 'tibble' for tidyverse work
+# str(esales)
 ```
 
-```{r close db connection}
-# Close connection
+```{r save data in Apache Arrow format, eval=FALSE}
+# Reference: https://arrow.apache.org/docs/r/
+# if(!('arrow' %in% installed.packages())) install.packages('arrow')
+library(arrow)
+write_feather(esales, "esales.feather")
+```
+
+```{r close db connection, eval=FALSE}
+# Close connection -- this is good practice
 dbDisconnect(db)
 dbUnloadDriver(db_driver)
 ```
 
 # Exploratory data analysis
 
-Provide a brief example of the data, showing how they are structured.
+```{r read in data}
+library(arrow)
+esales <- read_feather("esales.feather")
 
-```{r print a data table}
-print(esales)
-
+str(esales)
 ```
 
-```{r use tidyverse syntax to perform data manipulations}
+## Provide a brief example of the data, showing how they are structured.
+
+```{r print the data as a table}
+print(esales)
+```
+
+```{r use tidyverse syntax to perform some simple data manipulations}
+# References: https://www.tidyverse.org/, https://dplyr.tidyverse.org/
 
 esales %>%
   filter(year == 2019) %>%
-  filter(value > 9000)
+  filter(value > 9000) %>%
+  print()
 
 esales %>%
   group_by(month) %>%
@@ -106,25 +120,129 @@ esales %>%
   mutate(sales_TWh = value/1000) %>%
   select(-value)
   
-# filter(data object, condition)
-
+# filter(data object, condition) : syntax for filter() command
 ```
 
-Plot the time series.
+## Plot the time series.
 
 ```{r use ggplot2 to generate a plot}
+#Reference: https://ggplot2.tidyverse.org/
 
-ggplot(data=esales, aes(x=date,y=value)) + geom_line()
+ggplot(data=esales, aes(x=date,y=value)) + 
+  geom_line() + xlab("Year") + ylab("Virginia monthly total electricity sales (GWh)")
 
 ```
 
-Perform and report the results of other exploratory data analysis.
+
+
+
+```{r}
+# install.packages("tsibble")
+library(tsibble) # Reference: https://tsibble.tidyverts.org/articles/intro-tsibble.html
+
+esales %>% as_tsibble(index = date) -> esales_tbl_ts
+
+print(esales_tbl_ts)
+```
+
+```{r}
+library(lubridate) # Make it easy to deal with dates
+
+esales_tbl_ts %>% filter(month==3)
+
+esales_tbl_ts %>% filter(month(date)==3)
+
+esales_tbl_ts %>%
+  select(date, sales_GWh = value) -> elsales_tbl_ts
+
+print(elsales_tbl_ts)
+```
+
+
+
+
+## Perform and report the results of other exploratory data analysis
+
+
+```{r make a histogram of the data}
+
+hist(elsales_tbl_ts$sales_GWh, breaks=40)
+```
+
+
+```{r}
+# install.packages("feasts")
+library(feasts)
+
+elsales_tbl_ts %>% 
+  mutate(Month = yearmonth(date)) %>% 
+  as_tsibble(index = Month) -> vaelsales_tbl_ts
+
+
+vaelsales_tbl_ts %>% gg_season(sales_GWh)
+```
+
+```{r}
+# install.packages('tsibbledata')
+library(tsibbledata)
+
+aus_production
+
+aus_production %>% gg_season(Electricity)
+
+aus_production %>% gg_season(Beer)
+
+
+```
+```{r}
+vaelsales_tbl_ts %>% 
+  gg_subseries(sales_GWh)
+
+# aus_production %>% gg_subseries(Beer)
+```
+
+```{r plot lagged values}
+vaelsales_tbl_ts  %>% filter(month(Month) %in% c(3,6,9,12)) %>% gg_lag(sales_GWh, lags = 1:2)
+
+vaelsales_tbl_ts  %>% filter(month(Month) == 1) %>% gg_lag(sales_GWh, lags = 1:2)
+```
+
+```{r}
+vaelsales_tbl_ts %>% ACF(sales_GWh) %>% autoplot()
+```
+
+
 
 # Statistical model
 
 ## Formal model of data-generating process
 
 Write down an equation (or set of equations) that represent the data-generating process formally.
+
+For the electricity sales data, maybe the process looks like:
+
+$$ y_t = Trend_t X Seasonal_t X Residual_t $$
+```{r perform automated time series decomposition}
+# if(!('fpp3' %in% installed.packages())) install.packages('fpp3')
+library(fpp3)
+
+# decompose(vaelsales_tbl_ts)
+```
+
+```{r, eval=FALSE}
+# ETS forecasts
+USAccDeaths %>%
+  ets() %>%
+  forecast() %>%
+  autoplot()
+```
+
+```{r, eval=FALSE}
+str(taylor)
+plot(taylor)
+```
+
+
 
 If applicable: describe any transformations of the data (e.g., differencing, taking logs) you need to make to get the data into a form (e.g., linear) ready for numerical analysis.
 

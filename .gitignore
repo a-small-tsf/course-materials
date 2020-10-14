@@ -5,6 +5,9 @@
 # R session Data files
 .RData
 
+# Raw data files
+/raw_data/*.*
+
 # Other R Studio files
 *.Rproj
 
