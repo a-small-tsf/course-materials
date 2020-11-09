@@ -1,0 +1,24 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+Data set: 
+
+$y_{i,t}$: LDR of highway section $i$ in year $t$
+$i$ :      Index of highway section
+$a_{i,t}$: age of highway section $i$ in year $t$
+$b_{i}$:   pavement type of highway section $i$
+
+Basic model (might be!):
+
+$$ y_{i,t} = a_{i,t}*\gamma_{a_{i,t},b_i}*\varepsilon_{i,t}$$
+
+
+---
+
+$$ y_{t} = b_0 + b_1 x_t + \alpha_t \cdot \varepsilon_t $$
+
+
+

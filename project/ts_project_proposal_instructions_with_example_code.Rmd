@@ -171,7 +171,7 @@ hist(elsales_tbl_ts$sales_GWh, breaks=40)
 
 
 ```{r}
-# install.packages("feasts")
+# install.packages("feasts"), Reference: https://feasts.tidyverts.org/
 library(feasts)
 
 elsales_tbl_ts %>% 
@@ -241,6 +241,137 @@ vaelsales_tbl_ts %>%
 ```{r}
 vaelsales_tbl_ts %>%
   features(sales_GWh, feature_set(pkgs="feasts"))
+```
+
+# Example: Gross Domestic Product data 
+
+## Exploratory data analysis
+
+```{r}
+library(tsibbledata) # Data sets package
+
+print(global_economy)
+```
+
+
+```{r}
+global_economy %>% filter(Country=="Sweden") %>% print()
+```
+
+
+```{r}
+global_economy %>%
+  filter(Country=="Sweden") %>%
+  autoplot(GDP) +
+  ggtitle("GDP for Sweden") + ylab("$US billions")
+```
+
+## Fitting data to simple models
+
+
+```{r}
+global_economy %>% model(trend_model = TSLM(GDP ~ trend())) -> fit
+
+fit
+
+
+```
+
+
+```{r}
+fit %>% filter(Country == "Sweden") %>% residuals()
+```
+```{r}
+
+fit %>% filter(Country == "Sweden") %>% residuals() %>% autoplot(.resid)
+```
+### Work with ln(GDP)
+
+```{r}
+global_economy %>%
+  filter(Country=="Sweden") %>%
+  autoplot(log(GDP)) +
+  ggtitle("ln(GDP) for Sweden") + ylab("$US billions")
+```
+
+```{r}
+global_economy %>%
+  model(trend_model = TSLM(log(GDP) ~ trend())) -> logfit
+```
+
+```{r}
+logfit %>% filter(Country == "Sweden") %>% residuals() %>% autoplot()
+```
+
+
+
+```{r}
+global_economy %>% model(trend_model = TSLM(log(GDP) ~ log(Population))) -> fit3
+
+fit3 %>% filter(Country == "Sweden") %>% residuals() %>% autoplot()
+
+```
+# Producing forecasts
+
+
+```{r}
+fit %>% forecast(h = "3 years") -> fcast3yrs
+
+fcast3yrs
+
+```
+```{r}
+
+fcast3yrs %>% filter(Country == "Sweden", Year == 2020) %>% str()
+```
+
+
+```{r visualize forecasts}
+fcast3yrs %>% 
+  filter(Country=="Sweden") %>%
+  autoplot(global_economy) +
+  ggtitle("GDP for Sweden") + ylab("$US billions")
+```
+
+## Model residuals vs. forecast errors
+
+Model residuals:
+
+Your data: $y_1, y_2, \ldots, y_T$
+
+Fitted values: $\hat{y}_1, \hat{y}_2, \ldots, \hat{y}_T$
+
+
+Model residuals: $e_t = y_t - \hat{y}_t$
+
+Forecast errors:
+
+```{r}
+augment(fit)
+```
+
+```{r}
+augment(fit) %>% filter(Country == "Sweden") %>%
+  ggplot(aes(x = .resid)) +
+  geom_histogram(bins = 20) +
+  ggtitle("Histogram of residuals")
+```
+
+## Are the model residuals auto-correlated?
+
+```{r}
+augment(fit) %>% filter(Country == "Sweden") -> augSweden
+
+augSweden %>%
+  ACF(.resid) %>%
+  autoplot() + ggtitle("ACF of residuals")
+```
+```{r}
+augment(fit3) %>% filter(Country == "Sweden") -> augSweden3
+
+augSweden3 %>%
+  ACF(.resid) %>%
+  autoplot() + ggtitle("ACF of residuals")
 ```
 
 
