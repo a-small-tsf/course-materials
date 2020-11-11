@@ -39,7 +39,7 @@ This work addresses the question: Why do people not use probabilistic forecasts 
 
 # The data and the data-generating process
 
-Describe the data set you will be analyzing, and where it comes from, how it was generated and collected. Identify the source of the data. Give a narrative description of the data-generating process: this piece is critical.
+Describe the data set you will be analyzing, and where it comes from, how it was generated and collected. Identify the source of the data. Give a narrative description of the data-generating process: this piece is critical .
 
 Since these will be time series data: identify the frequency of the data series (e.g., hourly, monthly), and the period of record.
 
@@ -133,9 +133,6 @@ ggplot(data=esales, aes(x=date,y=value)) +
 
 ```
 
-
-
-
 ```{r}
 # install.packages("tsibble")
 library(tsibble) # Reference: https://tsibble.tidyverts.org/articles/intro-tsibble.html
@@ -158,17 +155,12 @@ esales_tbl_ts %>%
 print(elsales_tbl_ts)
 ```
 
-
-
-
 ## Perform and report the results of other exploratory data analysis
-
 
 ```{r make a histogram of the data}
 
 hist(elsales_tbl_ts$sales_GWh, breaks=40)
 ```
-
 
 ```{r}
 # install.packages("feasts"), Reference: https://feasts.tidyverts.org/
@@ -194,6 +186,7 @@ aus_production %>% gg_season(Beer)
 
 
 ```
+
 ```{r}
 vaelsales_tbl_ts %>% 
   gg_subseries(sales_GWh)
@@ -218,7 +211,6 @@ library(fpp3)
 # decompose(vaelsales_tbl_ts)
 ```
 
-
 ```{r perform additive STL decomposition of the VA electricity sales time series}
 vaelsales_tbl_ts %>%
   model(STL(sales_GWh ~ trend(window=21) + season(window='periodic'), robust = TRUE)) %>%
@@ -234,16 +226,18 @@ vaelsales_tbl_ts %>%
   components() %>%
   autoplot()
 ```
+
 ```{r}
 vaelsales_tbl_ts %>%
   features(sales_GWh, feat_stl)
 ```
+
 ```{r}
 vaelsales_tbl_ts %>%
   features(sales_GWh, feature_set(pkgs="feasts"))
 ```
 
-# Example: Gross Domestic Product data 
+# Example: Gross Domestic Product data
 
 ## Exploratory data analysis
 
@@ -253,11 +247,9 @@ library(tsibbledata) # Data sets package
 print(global_economy)
 ```
 
-
 ```{r}
 global_economy %>% filter(Country=="Sweden") %>% print()
 ```
-
 
 ```{r}
 global_economy %>%
@@ -268,7 +260,6 @@ global_economy %>%
 
 ## Fitting data to simple models
 
-
 ```{r}
 global_economy %>% model(trend_model = TSLM(GDP ~ trend())) -> fit
 
@@ -277,14 +268,15 @@ fit
 
 ```
 
-
 ```{r}
 fit %>% filter(Country == "Sweden") %>% residuals()
 ```
+
 ```{r}
 
 fit %>% filter(Country == "Sweden") %>% residuals() %>% autoplot(.resid)
 ```
+
 ### Work with ln(GDP)
 
 ```{r}
@@ -303,16 +295,14 @@ global_economy %>%
 logfit %>% filter(Country == "Sweden") %>% residuals() %>% autoplot()
 ```
 
-
-
 ```{r}
 global_economy %>% model(trend_model = TSLM(log(GDP) ~ log(Population))) -> fit3
 
 fit3 %>% filter(Country == "Sweden") %>% residuals() %>% autoplot()
 
 ```
-# Producing forecasts
 
+# Producing forecasts
 
 ```{r}
 fit %>% forecast(h = "3 years") -> fcast3yrs
@@ -320,11 +310,11 @@ fit %>% forecast(h = "3 years") -> fcast3yrs
 fcast3yrs
 
 ```
+
 ```{r}
 
 fcast3yrs %>% filter(Country == "Sweden", Year == 2020) %>% str()
 ```
-
 
 ```{r visualize forecasts}
 fcast3yrs %>% 
@@ -340,7 +330,6 @@ Model residuals:
 Your data: $y_1, y_2, \ldots, y_T$
 
 Fitted values: $\hat{y}_1, \hat{y}_2, \ldots, \hat{y}_T$
-
 
 Model residuals: $e_t = y_t - \hat{y}_t$
 
@@ -366,12 +355,80 @@ augSweden %>%
   ACF(.resid) %>%
   autoplot() + ggtitle("ACF of residuals")
 ```
+
 ```{r}
 augment(fit3) %>% filter(Country == "Sweden") -> augSweden3
 
 augSweden3 %>%
   ACF(.resid) %>%
   autoplot() + ggtitle("ACF of residuals")
+```
+
+
+# Example: GDP, several models, several countries
+
+
+```{r}
+library(tsibbledata) # Data sets package
+
+nordic <- c("Sweden", "Denmark", "Norway", "Finland")
+
+(global_economy %>% filter(Country %in% nordic) -> nordic_economy)
+
+```
+
+```{r}
+nordic_economy %>% autoplot(GDP)
+```
+
+```{r}
+fitnord <- nordic_economy %>%
+  model(
+    trend_model = TSLM(GDP ~ trend()),
+    trend_model_ln = TSLM(log(GDP) ~ trend()),
+    ets = ETS(GDP ~ trend("A")),
+    arima = ARIMA(GDP)
+  )
+
+fitnord
+```
+
+```{r}
+fitnord %>%
+  select(arima) %>%
+  coef()
+```
+
+
+Denmark: ARMA(1,1)
+
+Finland: MA(2)
+
+Norway: MA(1)
+
+Sweden: MA(2)
+
+```{r}
+nordic_economy %>%
+  model(arima_constrained = ARIMA(GDP ~ pdq(1,0,2))) %>% select(arima_constrained) %>% coef()
+```
+
+```{r}
+fitnord %>% coef() 
+```
+
+```{r}
+fitnord %>%  glance()  
+```
+
+```{r}
+fitnord %>% filter(Country == "Denmark") %>% select(arima) %>% report()
+```
+
+```{r}
+fitnord %>%
+  accuracy() %>%
+  arrange(Country, MPE)
 ```
 
 
@@ -383,13 +440,7 @@ Write down an equation (or set of equations) that represent the data-generating 
 
 For the electricity sales data, maybe the process looks like:
 
-$$ y_t = Trend_t X Seasonal_t X Residual_t $$
-$$ y_t = \beta_0 + \beta_1 t + \beta_2 m + \varepsilon_t $$
-
-
-
-
-
+$$ y_t = Trend_t X Seasonal_t X Residual_t $$ $$ y_t = \beta_0 + \beta_1 t + \beta_2 m + \varepsilon_t $$
 
 ```{r, eval=FALSE}
 # ETS forecasts
@@ -403,8 +454,6 @@ USAccDeaths %>%
 str(taylor)
 plot(taylor)
 ```
-
-
 
 If applicable: describe any transformations of the data (e.g., differencing, taking logs) you need to make to get the data into a form (e.g., linear) ready for numerical analysis.
 
@@ -428,7 +477,7 @@ If you can: describe briefly which computational tools you will use (e.g., R), a
 
 # Submission requirements
 
-Prepare your proposal using Markdown. (You may find it useful to generate your Markdown file from some other tool, e.g. R Markdown in R Studio.) Submit your proposal by pushing it to your repo within the course organization on Github. When your proposal is ready, notify the instructor by also creating a submission for this assignment on Collab. Please also upload a PDF version of your proposal to Collab as part of your submission.
+Prepare your proposal using Markdown . (You may find it useful to generate your Markdown file from some other tool, e.g. R Markdown in R Studio.) Submit your proposal by pushing it to your repo within the course organization on Github. When your proposal is ready, notify the instructor by also creating a submission for this assignment on Collab. Please also upload a PDF version of your proposal to Collab as part of your submission.
 
 # Comment
 
